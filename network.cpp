@@ -4,13 +4,13 @@
 // vector<char>  -> n max size
 // edges
 // vector<int> -> n neighbors
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
@@ -22,7 +22,7 @@ struct NetworkElement {
 
 struct Network {
     vector<NetworkElement> individuals;
-    int size;
+    int all_edges;
     int s;
     int i;
     int r;
@@ -84,7 +84,7 @@ Network create_network(const string& _path) {
         }
         file.close();
     }
-    net.size = net.individuals.size();
+    net.all_edges = edges;
     net.s = net.individuals.size();
     net.i = 0;
     net.r = 0;
