@@ -5,7 +5,7 @@
 // edges
 // vector<int> -> n neighbors
 #include <unordered_map>
-#include <unordered_set>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,7 +17,7 @@ using namespace std;
 struct NetworkElement {
     char status;
     vector<char> tag;
-    unordered_set<int> edges;
+    vector<int> edges;
 };
 
 struct Network {
@@ -76,10 +76,10 @@ Network create_network(const string& _path) {
             }
 
             // Add edges if any is new
-            if (net.individuals[el_index].edges.find(el2_index) == net.individuals[el_index].edges.end()) {
+            if (find(net.individuals[el_index].edges.begin(), net.individuals[el_index].edges.end(), el2_index) == net.individuals[el_index].edges.end()) {
                 edges++;
-                net.individuals[el_index].edges.insert(el2_index);
-                net.individuals[el2_index].edges.insert(el_index);
+                net.individuals[el_index].edges.push_back(el2_index);
+                net.individuals[el2_index].edges.push_back(el_index);
             }
         }
         file.close();
