@@ -47,22 +47,18 @@ namespace std {
 
 bool changeBacteria(Bacteria* bact, Network* net, unordered_set<TabuElement>* last_best, int random_index) {
     bool ret = false;
-    int newPos = net->individuals[bact->pos].edges[random_index % net->individuals[bact->pos].edges.size()];
+    auto& current_individual = net->individuals[bact->pos];
+    int newPos = current_individual.edges[random_index % current_individual.edges.size()];
     int newFit = bact->fit;
-    if (
-        (net->individuals[bact->pos].status == '0' &&  net->individuals[newPos].status == '1') ||
-        (net->individuals[bact->pos].status == '1' &&  net->individuals[newPos].status == '0')
-    ) {
+    char currentStatus = current_individual.status;
+    char newStatus = net->individuals[newPos].status;
+    if ((currentStatus == '0' && newStatus == '1') || (currentStatus == '1' && newStatus == '0')) {
         newFit += 1;
         TabuElement i_1;
-        i_1.index_1 = newPos;
-        i_1.index_2 = bact->pos;
-        if (bact->pos < newPos) {
-            i_1.index_1 = bact->pos;
-            i_1.index_2 = newPos;
-        }
+        i_1.index_1 = min(bact->pos, newPos);
+        i_1.index_2 = max(bact->pos, newPos);
         i_1.time = 0;
-        (*last_best).insert(i_1);
+        last_best->insert(i_1);
         bact->fit = newFit;
         ret = true;
     }
@@ -73,11 +69,8 @@ bool changeBacteria(Bacteria* bact, Network* net, unordered_set<TabuElement>* la
 void chemotaxis(vector<Bacteria>& bacteria_population, BFOAParameters* params, Network* net, unordered_set<TabuElement>* last_best) {
     for (int j = 0; j < params->NC; j++) {
         for (
-            int b = 0; b < bacteria_population.size(); b++
+            int b = 0; b < bacteria_population.size() && !net->individuals[bacteria_population[b].pos].edges.empty(); b++
         ) {
-            if (net->individuals[bacteria_population[b].pos].edges.empty()) {
-                continue;
-            }
             int random_index = gen_rand_int(0, net->individuals[bacteria_population[b].pos].edges.size() - 1);
             changeBacteria(&bacteria_population[b], net, last_best, random_index);
             for (int m = 0; m < params->NS; m++) {

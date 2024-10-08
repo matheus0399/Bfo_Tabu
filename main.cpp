@@ -1,9 +1,12 @@
 // Copyright (c) Pacheco. All rights reserved.
-// cls && g++ main.cpp -O2 -o main.exe && main.exe && del main.exe
+// cls && g++ main.cpp -O3 -o main.exe && main.exe && del main.exe
+#include <sys/stat.h>
 #include "bfo.cpp"
 #include <iostream>
 #include <time.h>
 #include <chrono>
+#include <string>
+#include <fstream>
 
 using namespace std;
 using namespace chrono;
@@ -15,7 +18,6 @@ struct MyTest {
     double recover;
     int bactSize;
     int moves;
-    double elim;
     int iter_test;
 };
 
@@ -56,11 +58,11 @@ void runTest(MyTest test) {
     vector<TabuElement> tabu;
     BFOAParameters params;
     params.S = test.bactSize;
-    params.NC = test.moves;
+    params.NC = test.moves * 3;
     params.NS = test.moves;
     params.NED = test.moves;
-    params.NRE = 50;
-    params.PED = test.elim;
+    params.NRE = 10;
+    params.PED = 0.2;
     Network n = create_network(test.file_name);
     int amount = n.individuals.size() / 100 * 10; // 10 por cento da população começa infectada
     vector<int> indexes;
@@ -111,6 +113,8 @@ void runTest(MyTest test) {
         +","+
         to_string(test.moves)
         +","+
+        to_string(params.NC)
+        +","+
         to_string(test.infect)
         +","+
         to_string(test.recover)
@@ -132,33 +136,50 @@ void runTest(MyTest test) {
         to_string(n.r));
 }
 
-string createTestFileName() {
-    auto start = system_clock::now();
-    time_t start_to_parse = system_clock::to_time_t(start);
-    string ha = ctime(&start_to_parse);
-    while (ha.find("\n") != string::npos) {
-        size_t start_pos = ha.find("\n");
-        ha.replace(start_pos, 1, "");
-    }
-    while (ha.find(":") != string::npos) {
-        size_t start_pos = ha.find(":");
-        ha.replace(start_pos, 1, "_");
-    }
-    while (ha.find(" ") != string::npos) {
-        size_t start_pos = ha.find(" ");
-        ha.replace(start_pos, 1, "_");
-    }
-    string file_name = ".\\" + ha + ".csv";
+string createTestFileName(string file_name) {
     ofstream outfile (file_name);
     outfile.close();
     return file_name;
 }
 
+bool verify_line(string file_name, string line) {
+    bool ret = false;
+    ifstream file(file_name);
+    string str; 
+    while (std::getline(file, str))
+    {
+        if (str.find(line) != string::npos) {
+            ret = true;
+            break;
+        } 
+    }
+    file.close();
+    return ret;
+}
+
+inline bool file_exists(const std::string& name) {
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
 int main() {
-    string file_name = createTestFileName();
-    writeFileLine(file_name, "iteracao,instancia,num. bacteria,iter. movimento,prob. infect, prob. recover, prob. elim,dias,arestas,vertices,tempo,S,I,R");
+    int type = 0;
+    string file_name = "";
+    if (type == 0) {
+        file_name = ".\\test_home.csv";
+    }
+    if (type == 1) {
+        file_name = ".\\test_work_1.csv";
+    }
+    if (type == 2) {
+        file_name = ".\\test_work_2.csv";
+    }
+    if (file_exists(file_name) == false){
+        createTestFileName(file_name);
+        writeFileLine(file_name, "iteracao,instancia,num. bacteria,iter. movimento,iter. chemo,prob. infect, prob. recover, prob. elim,dias,arestas,vertices,tempo,S,I,R");
+    }
     vector<string> tests = {
-        // ".\\datasets\\sx-mathoverflow.txt",
+        ".\\datasets\\sx-mathoverflow.txt",
         ".\\datasets\\CA-GrQc.txt",
         ".\\datasets\\CA-HepTh.txt",
         ".\\datasets\\CollegeMsg.txt",
@@ -169,46 +190,84 @@ int main() {
         ".\\datasets\\soc-sign-bitcoinotc.txt",
         ".\\datasets\\Wiki-Vote.txt",
     };
-    vector<double> infect = {0.3, 0.5, 0.8};
-    vector<double> recover = {0.3, 0.5, 0.8};
+    vector<vector<double>> infect;
     vector<int> bactSize = {50, 100};
     vector<int> moves = {5, 10};
-    vector<double> elim = {0.20, 0.80};
     vector<MyTest> tests_bfo;
-    for (double i : infect) {
-        for (double r : recover) {
-            for (int b : bactSize) {
-                for (int m : moves) {
-                    for (double e : elim) {
-                        for (string name : tests) {
-                            for (int iter = 0; iter < 30; iter++) {
-                                MyTest t;
-                                t.file_name = name;
-                                t.csv_name = file_name;
-                                t.infect = i;
-                                t.recover = r;
-                                t.bactSize = b;
-                                t.moves = m;
-                                t.elim = e;
-                                t.iter_test = iter + 1;
-                                tests_bfo.push_back(t);
-                            }
-                        }
+    if (type == 0) {
+        infect = {{0.3, 0.3}, {0.3, 0.5}, {0.3, 0.8}, {0.5, 0.3}, {0.5, 0.8}, {0.8, 0.3}, {0.8, 0.5}, {0.8, 0.8}};
+    }
+    if (type == 1) {
+        infect = {{0.125, 0.125}, {0.34, 0.34}, {0.5, 0.5}, {0.05, 0.05}, {0.15, 0.15}, {0.25, 0.25}, {0.9, 0.9}, {0.014, 0.05}};
+        moves = {5};
+    }
+    if (type == 2) {
+        infect = {{0.125, 0.125}, {0.34, 0.34}, {0.5, 0.5}, {0.05, 0.05}, {0.15, 0.15}, {0.25, 0.25}, {0.9, 0.9}, {0.014, 0.05}};
+        moves = {10};
+    }
+    for (vector<double> i : infect) {
+        for (int b : bactSize) {
+            for (int m : moves) {
+                for (string name : tests) {
+                    for (int iter = 0; iter < 30; iter++) {
+                        MyTest t;
+                        t.file_name = name;
+                        t.csv_name = file_name;
+                        t.infect = i[0];
+                        t.recover = i[1];
+                        t.bactSize = b;
+                        t.moves = m;
+                        t.iter_test = iter + 1;
+                        tests_bfo.push_back(t);
                     }
                 }
             }
         }
     }
+    bool validate = true;
     for (vector<MyTest>::iterator itr = tests_bfo.begin(); itr != tests_bfo.end(); itr++) {
-        runTest(*itr);
+        validate = verify_line(file_name, 
+            to_string((*itr).iter_test)
+            +","+
+            (*itr).file_name
+            +","+
+            to_string((*itr).bactSize)
+            +","+
+            to_string((*itr).moves)
+            +","+
+            to_string((*itr).moves * 3)
+            +","+
+            to_string((*itr).infect)
+            +","+
+            to_string((*itr).recover)
+            +","+
+            to_string(0.2)
+        );
+        if (validate == false) {
+            runTest(*itr);
+        }
     }
+    
     return 0;
 }
 
 
-// •	Probabilidade de infecção β = {0.3, 0.5, 0.8};
-// •	Probabilidade de remoção γ = {0.3, 0.5, 0.8};
-// •	Número de bactérias S = {50, 100};
-// •	Número de iterações na movimentação das bactérias NC, NS, NED = {5, 10};
-// •	Probabilidade de eliminação das bactérias PED = {0.20, 0.80};
-
+// em todas considera a melhor melhora após 1000 iterações sem melhora e rodam até 100 dias
+// maquina 1
+// config dos trabalhos no SIR 
+//     qtde_bact                  = {50, 100};
+//     qtde_chemotaxia            = 15;
+//     qtde_movimentos_elimdisper = 5;
+//     qtde_reproducao_bact       = 10;
+//     taxa_eliminacao_dispercao  = 0.20;
+// maquina 2
+// config dos trabalhos no SIR 
+//     qtde_bact                  = {50, 100};
+//     qtde_chemotaxia            = 30;
+//     qtde_movimentos_elimdisper = 10;
+//     qtde_reproducao_bact       = 10;
+//     taxa_eliminacao_dispercao  = 0.20;
+// config dos trabalhos no SIR {infect, recover}
+//     {0.125, 0.125}, {0.34, 0.34}, {0.5, 0.5}, {0.05, 0.05}, {0.15, 0.15}, {0.25, 0.25}, {0.9, 0.9}, {0.014, 0.05}
+// config casa
+//     {0.3, 0.3}, {0.3, 0.5}, {0.3, 0.8}, {0.5, 0.3}, {0.5, 0.8}, {0.8, 0.3}, {0.8, 0.5}, {0.8, 0.8}
