@@ -1,0 +1,36 @@
+
+Algoritmo Bactéria
+
+// [1] Inicialização
+inicio
+    Definir todas as variáveis e contadores de loop
+
+    // [2] Loop de Eliminação-Dispersão
+    enquanto (I < Ned) faça
+        I = I + 1
+
+        k = 0
+        // [3] Loop de Reprodução
+        enquanto (k < Nre) faça
+            k = k + 1
+            j = 0
+            // [4] Loop de Quimiotaxia
+            enquanto (j < Nc) faça
+                j = j + 1
+                // Executar quimiotaxia (movimento para buscar nutrientes)
+            fim-enquanto
+
+            // Reproduzir bactérias
+            matar a pior metade da população (com menor saúde cumulativa)
+            duplicar a melhor metade da população
+        fim-enquanto
+
+        i = 0
+        enquanto (i < S) faça
+            se um número aleatório < Ped então
+                eliminar e dispersar a bactéria em um local aleatório
+            fim-se
+            i = i + 1
+        fim-enquanto
+    fim-enquanto
+fim

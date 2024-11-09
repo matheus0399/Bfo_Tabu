@@ -1,0 +1,38 @@
+
+Algoritmo Quimiotaxia
+
+inicio
+    // Inicializa o contador de bactérias
+    i = 0
+    // [5] Loop de quimiotaxia
+    enquanto (i < S) faça
+        // [6] Movimento Tumble
+        Tumble: Deixa a bactéria i dar um passo em uma direção aleatória gerada por um vetor tumble Δ(i)
+        // Neste caso o bactéria i anda em uma direção aleatória que é igual ao indice de uma aresta do individuo
+
+        // Calcula o novo valor de nutrientes da bactéria após o Tumble
+        J(i, j+1, k, l) = calcular_valor(i, j+1, k, l)
+
+        // Inicializa o contador de swim
+        m = 0
+
+        // [7] Loop de Swim
+        enquanto (m < Ns) faça
+            m = m + 1
+
+            se (J(i, j+1, k, l) < J_last) então
+                J_last = J(i, j+1, k, l)
+
+                // Movimento Swim
+                Swim: Deixa a bactéria i dar outro passo na direção aleatória gerada pelo vetor tumble Δ(i)
+
+                // Calcula o novo valor de nutrientes da bactéria após o Swim
+                J(i, j+1, k, l) = calcular_valor(i, j+1, k, l)
+            senão
+                defina m = Ns // Sai do loop Swim
+            fim-se
+        fim-enquanto
+        // [8] Aumenta o índice da bactéria
+        i = i + 1
+    fim-enquanto
+fim

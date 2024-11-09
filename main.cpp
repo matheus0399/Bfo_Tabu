@@ -121,7 +121,7 @@ void runTest(MyTest test) {
         +","+
         to_string(params.PED)
         +","+
-        to_string(i + 1)
+        to_string(i)
         +","+
         to_string(n.all_edges)
         +","+
@@ -148,7 +148,7 @@ bool verify_line(string file_name, string line) {
     string str; 
     while (std::getline(file, str))
     {
-        if (str.find(line) != string::npos) {
+        if (str.find(line) != string::npos && str.find(line) == 0) {
             ret = true;
             break;
         } 
